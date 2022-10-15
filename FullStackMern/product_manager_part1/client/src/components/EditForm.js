@@ -1,29 +1,37 @@
-import { useState } from 'react'
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-const ProductForm = (props) => {
-    const {product, setProduct} = props;
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import { useParams, useNavigate } from 'react-router-dom'
+
+const EditForm = () => {
     const [ title, setTitle ] = useState('')
     const [ price, setPrice ] = useState('')
     const [ description, setDescription ] = useState('')
+    const {id} = useParams()
     const navigate = useNavigate()
-    const onSubmitHandler = (e) => {
+    useEffect(()=>{
+        axios.get(`http://localhost:8000/api/oneProduct/${id}`)
+        .then((res)=>{
+            setTitle(res.data.title)
+            setPrice(res.data.price)
+            setDescription(res.data.description)
+        }).catch((err)=>{
+            console.log(err)
+        })
+    }, [])
+    const updateHandler = (e) => {
         e.preventDefault()
-        axios.post('http://localhost:8000/api/addProduct',
-        {
+        axios.put(`http://localhost:8000/api/updateProduct/${id}`, {
             title,
             price,
             description
-        })
-        .then((res)=>{
-            console.log(res); 
+        }).then((res)=>{
             navigate('/productList')
-            setProduct([...product, res.data]);
+        }).catch((err)=>{
+            console.log(err)
         })
-        .catch(err=>console.log(err))
     }
     return (
-        <form className='col-6 mx-auto' onSubmit = {onSubmitHandler}>
+        <form onSubmit={updateHandler}>
             <p>
                 <label className='form-label'>Title:</label>
                 <input value={title} className='form-control' type="text" onChange= {(e) => setTitle(e.target.value)}/>
@@ -36,8 +44,9 @@ const ProductForm = (props) => {
                 <label className='form-label'>Description:</label>
                 <input value={description} className='form-control' type="text" onChange= {(e) => setDescription(e.target.value)}/>
             </p>
-            <input type="submit" className='btn btn-info'></input>
+            <input value="Update Product" type="submit" className='btn btn-warning' />
         </form>
     )
 }
-export default ProductForm;
+
+export default EditForm;
